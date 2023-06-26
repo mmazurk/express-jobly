@@ -87,6 +87,22 @@ class Company {
     return company;
   }
 
+  static async getbyQuery({companyName, minEmployees, maxEmployees}) {
+   
+    let queryStr = 'select handle, name, description, num_employees as "numEmployees", logo_url as "logoUrl" from companies where ';
+    let queryArray = [];
+    if(companyName) queryArray.push(`lower(name) like '%${companyName}%'`);
+    if(minEmployees) queryArray.push(`num_employees >= ${minEmployees}`);
+    if(maxEmployees) queryArray.push(`num_employees <= ${maxEmployees}`);
+    queryStr = queryStr + queryArray.join(' and ')
+    const results = await db.query(queryStr); 
+    const companies = results.rows;
+
+    if (!companies) throw new NotFoundError(`No companies meet criteria.`);
+    return companies;
+
+  }
+
   /** Update company data with `data`.
    *
    * This is a "partial update" --- it's fine if data doesn't contain all the
