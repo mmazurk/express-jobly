@@ -1,0 +1,26 @@
+{
+    "$schema": "http://json-schema.org/draft-06/schema#",
+    "$ref": "#/definitions/Welcome6",
+    "definitions": {
+        "Welcome6": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "title": {
+                    "type": "string"
+                },
+                "salary": {
+                    "type": "integer"
+                },
+                "equity": {
+                    "type": "integer"
+                },
+                "companyHandle": {
+                    "type": "string"
+                }
+            },
+            "required": [ ],
+            "title": "Welcome6"
+        }
+    }
+}

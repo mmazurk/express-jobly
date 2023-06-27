@@ -11,6 +11,7 @@ const {
   commonAfterEach,
   commonAfterAll,
   u1Token,
+  u2Token
 } = require("./_testCommon");
 
 beforeAll(commonBeforeAll);
@@ -29,11 +30,26 @@ describe("POST /companies", function () {
     numEmployees: 10,
   };
 
-  test("ok for users", async function () {
+  // added this test to ensure that middleware
+  // "ensureAdmin" is working
+
+  test("not authorized for users", async function () {
     const resp = await request(app)
       .post("/companies")
       .send(newCompany)
       .set("authorization", `Bearer ${u1Token}`);
+    expect(resp.statusCode).toEqual(401);
+  });
+
+  // changed this to a u2Token I created in _testCommon.js
+  // then I exported it to this file
+  // the u2Token is an admin
+
+  test("ok for admins", async function () {
+    const resp = await request(app)
+      .post("/companies")
+      .send(newCompany)
+      .set("authorization", `Bearer ${u2Token}`);
     expect(resp.statusCode).toEqual(201);
     expect(resp.body).toEqual({
       company: newCompany,
@@ -47,7 +63,7 @@ describe("POST /companies", function () {
         handle: "new",
         numEmployees: 10,
       })
-      .set("authorization", `Bearer ${u1Token}`);
+      .set("authorization", `Bearer ${u2Token}`);
     expect(resp.statusCode).toEqual(400);
   });
 
@@ -58,7 +74,7 @@ describe("POST /companies", function () {
         ...newCompany,
         logoUrl: "not-a-url",
       })
-      .set("authorization", `Bearer ${u1Token}`);
+      .set("authorization", `Bearer ${u2Token}`);
     expect(resp.statusCode).toEqual(400);
   });
 });
@@ -144,14 +160,28 @@ describe("GET /companies/:handle", function () {
 
 /************************************** PATCH /companies/:handle */
 
+// Changed this so it fails if the user doesn't have admin token
+
 describe("PATCH /companies/:handle", function () {
-  test("works for users", async function () {
+  test("doesn't work for non-admin", async function () {
     const resp = await request(app)
       .patch(`/companies/c1`)
       .send({
         name: "C1-new",
       })
       .set("authorization", `Bearer ${u1Token}`);
+    expect(resp.statusCode).toEqual(401);
+  });
+
+// This will work if user has admin token
+
+  test("works for admin", async function () {
+    const resp = await request(app)
+      .patch(`/companies/c1`)
+      .send({
+        name: "C1-new",
+      })
+      .set("authorization", `Bearer ${u2Token}`);
     expect(resp.body).toEqual({
       company: {
         handle: "c1",
@@ -176,7 +206,7 @@ describe("PATCH /companies/:handle", function () {
       .send({
         name: "new nope",
       })
-      .set("authorization", `Bearer ${u1Token}`);
+      .set("authorization", `Bearer ${u2Token}`);
     expect(resp.statusCode).toEqual(404);
   });
 
@@ -186,7 +216,7 @@ describe("PATCH /companies/:handle", function () {
       .send({
         handle: "c1-new",
       })
-      .set("authorization", `Bearer ${u1Token}`);
+      .set("authorization", `Bearer ${u2Token}`);
     expect(resp.statusCode).toEqual(400);
   });
 
@@ -196,18 +226,27 @@ describe("PATCH /companies/:handle", function () {
       .send({
         logoUrl: "not-a-url",
       })
-      .set("authorization", `Bearer ${u1Token}`);
+      .set("authorization", `Bearer ${u2Token}`);
     expect(resp.statusCode).toEqual(400);
   });
 });
 
 /************************************** DELETE /companies/:handle */
 
+// modified this so user needs admin token
+
 describe("DELETE /companies/:handle", function () {
-  test("works for users", async function () {
+  test("doesn't work for users", async function () {
     const resp = await request(app)
       .delete(`/companies/c1`)
       .set("authorization", `Bearer ${u1Token}`);
+    expect(resp.statusCode).toEqual(401);
+  });
+
+  test("works for admin", async function () {
+    const resp = await request(app)
+      .delete(`/companies/c1`)
+      .set("authorization", `Bearer ${u2Token}`);
     expect(resp.body).toEqual({ deleted: "c1" });
   });
 
@@ -219,7 +258,7 @@ describe("DELETE /companies/:handle", function () {
   test("not found for no such company", async function () {
     const resp = await request(app)
       .delete(`/companies/nope`)
-      .set("authorization", `Bearer ${u1Token}`);
+      .set("authorization", `Bearer ${u2Token}`);
     expect(resp.statusCode).toEqual(404);
   });
 });

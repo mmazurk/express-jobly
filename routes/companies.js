@@ -64,8 +64,8 @@ router.get("/", async function (req, res, next) {
 
       // Check if minEmployees and maxEmployees are valid integers and maxEmployees is greater than minEmployees
       if (
-        // minEmployees is there and it's not a valid integer
-        // maxEmployees is there and it's not a valid integer
+        // minEmployees is there and it's not a valid integer OR
+        // maxEmployees is there and it's not a valid integer OR
         // minEmployees and maxEmployees are there and (max - min) is negative
         (minEmployees && !Number.isInteger(minEmployees)) ||
         (maxEmployees && !Number.isInteger(maxEmployees)) ||
