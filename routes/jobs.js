@@ -49,9 +49,6 @@ router.get("/test", async function (req, res, next) {
   }
 });
 
-// --------------------------------------------------------------------------
-// --------------------------------------------------------------------------
-// Fix these to be jobs instead of companies
 
 router.post("/", ensureAdmin, async function (req, res, next) {
   try {
@@ -67,6 +64,9 @@ router.post("/", ensureAdmin, async function (req, res, next) {
     return next(err);
   }
 });
+
+// Note that I didn't do a route for Job.getByQuery
+// But that I did test the functionality above in my /test route
 
 router.get("/:id", ensureUserorAdmin, async function (req, res, next) {
   try {

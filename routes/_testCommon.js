@@ -7,10 +7,12 @@ const Job = require("../models/job")
 const { createToken } = require("../helpers/tokens");
 
 async function commonBeforeAll() {
-  // noinspection SqlWithoutWhere
+
   await db.query("DELETE FROM users");
-  // noinspection SqlWithoutWhere
   await db.query("DELETE FROM companies");
+  await db.query("DELETE FROM jobs");
+  
+  await db.query("ALTER SEQUENCE jobs_id_seq RESTART WITH 1");
 
   await Company.create(
       {

@@ -11,7 +11,7 @@ const {
   commonAfterEach,
   commonAfterAll,
   u1Token,
-  u2Token
+  u2Token,
 } = require("./_testCommon");
 
 beforeAll(commonBeforeAll);
@@ -26,7 +26,7 @@ describe("POST /jobs", function () {
     title: "Bad PM Living in the UK",
     salary: 60000,
     equity: 0.22,
-    companyHandle: "c1"
+    companyHandle: "c1",
   };
 
   // added this test to ensure that middleware
@@ -50,8 +50,7 @@ describe("POST /jobs", function () {
       .send(newJob)
       .set("authorization", `Bearer ${u2Token}`);
     expect(resp.statusCode).toEqual(201);
-    });
-
+  });
 
   test("bad request with missing data", async function () {
     const resp = await request(app)
@@ -87,21 +86,21 @@ describe("GET /jobs", function () {
           title: "j1",
           salary: 100000,
           equity: 0.11,
-          companyHandle: "c1"
+          companyHandle: "c1",
         },
         {
           id: expect.any(Number),
           title: "j2",
           salary: 200000,
           equity: 0.22,
-          companyHandle: "c2"
+          companyHandle: "c2",
         },
         {
           id: expect.any(Number),
           title: "j3",
           salary: 300000,
           equity: 0.33,
-          companyHandle: "c3"
+          companyHandle: "c3",
         },
       ],
     });
@@ -119,47 +118,48 @@ describe("GET /jobs", function () {
   });
 });
 
-
 /************************************** GET /jobs/:handle */
 
-// describe("GET /jobs/:handle", function () {
-//   test("works for anon", async function () {
-//     const resp = await request(app).get(`/jobs/c1`);
-//     expect(resp.body).toEqual({
-//       company: {
-//         handle: "c1",
-//         name: "C1",
-//         description: "Desc1",
-//         numEmployees: 1,
-//         logoUrl: "http://c1.img",
-//       },
-//     });
-//   });
+describe("GET /jobs/:id", function () {
+  test("does not work for non-admin", async function () {
+    const resp = await request(app)
+      .get(`/jobs/1`)
+      .set("authorization", `Bearer ${u1Token}`);
+    expect(resp.statusCode).toEqual(401);
+  });
 
-//   test("works for anon: company w/o jobs", async function () {
-//     const resp = await request(app).get(`/jobs/c2`);
-//     expect(resp.body).toEqual({
-//       company: {
-//         handle: "c2",
-//         name: "C2",
-//         description: "Desc2",
-//         numEmployees: 2,
-//         logoUrl: "http://c2.img",
-//       },
-//     });
-//   });
+  // Wow, this was hard for two reasons;
+  // I had to reset the auto-incrementing id field in _testCommon.js
+  // and I had to change equity to a string
 
-//   test("not found for no such company", async function () {
-//     const resp = await request(app).get(`/jobs/nope`);
-//     expect(resp.statusCode).toEqual(404);
-//   });
-// });
+  test("works for admin", async function () {
+    const resp = await request(app)
+      .get(`/jobs/1`)
+      .set("authorization", `Bearer ${u2Token}`);
+    expect(resp.body).toEqual({
+      job: {
+        id: 1,
+        title: "j1",
+        salary: 100000,
+        equity: "0.11",
+        companyHandle: "c1",
+      },
+    });
+  });
 
-// /************************************** PATCH /jobs/:handle */
+  test("not found for no such company", async function () {
+    const resp = await request(app)
+      .get(`/jobs/99`)
+      .set("authorization", `Bearer ${u2Token}`);
+    expect(resp.statusCode).toEqual(404);
+  });
+});
+
+// /************************************** PATCH /jobs/:id */
 
 // // Changed this so it fails if the user doesn't have admin token
 
-// describe("PATCH /jobs/:handle", function () {
+// describe("PATCH /jobs/:id", function () {
 //   test("doesn't work for non-admin", async function () {
 //     const resp = await request(app)
 //       .patch(`/jobs/c1`)
@@ -181,7 +181,7 @@ describe("GET /jobs", function () {
 //       .set("authorization", `Bearer ${u2Token}`);
 //     expect(resp.body).toEqual({
 //       company: {
-//         handle: "c1",
+//         id: "c1",
 //         name: "C1-new",
 //         description: "Desc1",
 //         numEmployees: 1,
@@ -207,11 +207,11 @@ describe("GET /jobs", function () {
 //     expect(resp.statusCode).toEqual(404);
 //   });
 
-//   test("bad request on handle change attempt", async function () {
+//   test("bad request on id change attempt", async function () {
 //     const resp = await request(app)
 //       .patch(`/jobs/c1`)
 //       .send({
-//         handle: "c1-new",
+//         id: "c1-new",
 //       })
 //       .set("authorization", `Bearer ${u2Token}`);
 //     expect(resp.statusCode).toEqual(400);
@@ -228,11 +228,11 @@ describe("GET /jobs", function () {
 //   });
 // });
 
-// /************************************** DELETE /jobs/:handle */
+// /************************************** DELETE /jobs/:id */
 
 // // modified this so user needs admin token
 
-// describe("DELETE /jobs/:handle", function () {
+// describe("DELETE /jobs/:id", function () {
 //   test("doesn't work for users", async function () {
 //     const resp = await request(app)
 //       .delete(`/jobs/c1`)
@@ -267,14 +267,14 @@ describe("GET /jobs", function () {
 //     const resp = await request(app).get("/jobs?name=c&maxEmployees=2");
 //     expect(resp.body).toEqual({results: [
 //         {
-//           handle: "c1",
+//           id: "c1",
 //           name: "C1",
 //           description: "Desc1",
 //           numEmployees: 1,
 //           logoUrl: "http://c1.img",
 //         },
 //         {
-//           handle: "c2",
+//           id: "c2",
 //           name: "C2",
 //           description: "Desc2",
 //           numEmployees: 2,

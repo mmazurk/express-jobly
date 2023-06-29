@@ -8,6 +8,7 @@ const express = require("express");
 const { ensureLoggedIn, ensureAdmin, ensureUserorAdmin } = require("../middleware/auth");
 const { BadRequestError } = require("../expressError");
 const User = require("../models/user");
+const Job = require("../models/job")
 const { createToken } = require("../helpers/tokens");
 const userNewSchema = require("../schemas/userNew.json");
 const userUpdateSchema = require("../schemas/userUpdate.json");
@@ -71,12 +72,24 @@ router.get("/", ensureAdmin, async function (req, res, next) {
 router.get("/:username", ensureUserorAdmin, async function (req, res, next) {
   try {
     const user = await User.get(req.params.username);
-    return res.json({ user });
+    let jobs = await User.getJobs(req.params.username);
+    jobs = jobs.map(item => item.jobId)
+    return res.json({ user, jobs});
   } catch (err) {
     return next(err);
   }
 });
 
+router.post("/:username/jobs/:id", ensureUserorAdmin, async function (req, res, next) {
+  try {
+    const user = await User.get(req.params.username);
+    const job = await Job.getById(req.params.id);
+    const application = await User.apply(user.username, job.id)
+    return res.json({ applied: application.jobId });
+  } catch (err) {
+    return next(err);
+  }
+});
 
 /** PATCH /[username] { user } => { user }
  *
