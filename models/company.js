@@ -89,13 +89,44 @@ class Company {
 
   static async getbyQuery({companyName, minEmployees, maxEmployees}) {
    
+    // let queryStr = 'select handle, name, description, num_employees as "numEmployees", logo_url as "logoUrl" from companies where ';
+    // let queryArray = [];
+    // if(companyName) queryArray.push(`lower(name) like '%${companyName}%'`);
+    // if(minEmployees) queryArray.push(`num_employees >= ${minEmployees}`);
+    // if(maxEmployees) queryArray.push(`num_employees <= ${maxEmployees}`);
+    // queryStr = queryStr + queryArray.join(' and ')
+    // const results = await db.query(queryStr); 
+    // const companies = results.rows;
+
+    // if (!companies) throw new NotFoundError(`No companies meet criteria.`);
+    // return companies;
+
     let queryStr = 'select handle, name, description, num_employees as "numEmployees", logo_url as "logoUrl" from companies where ';
+    
     let queryArray = [];
-    if(companyName) queryArray.push(`lower(name) like '%${companyName}%'`);
-    if(minEmployees) queryArray.push(`num_employees >= ${minEmployees}`);
-    if(maxEmployees) queryArray.push(`num_employees <= ${maxEmployees}`);
+    let valuesArray = [];
+    let counter = 1;
+
+    if(companyName) {
+    	queryArray.push(`lower(name) like $${counter}`);
+    	counter += 1
+    	valuesArray.push(`%${companyName}%`);
+    }
+    
+    if(minEmployees) {
+    	queryArray.push(`num_employees >= $${counter}`);
+    	counter += 1
+    	valuesArray.push(minEmployees);
+    }
+    
+    if(maxEmployees) {
+    	queryArray.push(`num_employees <= $${counter}`);
+      counter += 1
+    	valuesArray.push(maxEmployees);
+    }
+
     queryStr = queryStr + queryArray.join(' and ')
-    const results = await db.query(queryStr); 
+    const results = await db.query(queryStr, valuesArray); 
     const companies = results.rows;
 
     if (!companies) throw new NotFoundError(`No companies meet criteria.`);
